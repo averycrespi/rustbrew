@@ -9,11 +9,15 @@ fn main() {
     let matches = App::new("Convert Orcbrew to JSON")
         .arg(Arg::with_name("ORCBREW").required(true))
         .get_matches();
-    let orcbrew = matches.value_of("ORCBREW").expect("missing Orcbrew");
-    let s = fs::read_to_string(orcbrew)
+
+    let orcbrew_file = matches
+        .value_of("ORCBREW")
+        .expect("missing ORCBREW argument");
+    let orcbrew = fs::read_to_string(orcbrew_file)
         .expect("failed to read Orcbrew file")
         .replace('\u{feff}', "");
-    let edn = Edn::from_str(&s).expect("failed to convert string to EDN");
+    let edn = Edn::from_str(&orcbrew).expect("failed to convert string to EDN");
     let json = edn.to_json();
+
     println!("{}", json);
 }
