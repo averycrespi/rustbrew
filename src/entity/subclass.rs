@@ -1,56 +1,50 @@
 use serde::Deserialize;
 use serde_json::value::Value;
+use std::collections::HashMap;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct Subclass {
     class: String,
-
-    #[serde(default)]
     #[serde(alias = "clericSpells")]
-    cleric_spells: Value, //TODO
-
-    #[serde(default)]
+    cleric_spells: Value, // TODO: class spells
     #[serde(alias = "disabled?")]
     disabled: bool,
-
     key: String,
-
     #[serde(alias = "levelModifiers")]
-    level_modifiers: Value, //TODO
-
-    #[serde(default)]
+    level_modifiers: Vec<Value>, // TODO: complicated
     #[serde(alias = "levelSelections")]
-    level_selections: Value, //TODO
-
+    level_selections: Vec<SubclassLevelSelection>,
     name: String,
     #[serde(alias = "optionPack")]
     option_pack: String,
-
-    #[serde(default)]
     #[serde(alias = "paladinSpells")]
-    paladin_spells: Value, //TODO
-
-    #[serde(default)]
-    profs: Value, //TODO
-
-    #[serde(default)]
-    spellcasting: Value, //TODO
-
-    #[serde(default)]
+    paladin_spells: Value, // TODO: class spells
+    profs: Value, // TODO: complicated
+    spellcasting: HashMap<String, u64>,
     #[serde(alias = "warlockSpells")]
-    warlock_spells: Value, //TODO
-
+    warlock_spells: Value, // TODO: class spells
     traits: Vec<SubclassTrait>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct SubclassLevelSelection {
+    level: u64,
+    num: u64,
+    #[serde(alias = "type")]
+    type_: String,
+}
+
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct SubclassTrait {
     description: String,
-
-    #[serde(default)]
     level: u64,
-
-    #[serde(default)]
     name: String,
+    #[serde(alias = "type")]
+    type_: String,
 }

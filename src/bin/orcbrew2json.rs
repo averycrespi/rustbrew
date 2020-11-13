@@ -10,8 +10,10 @@ fn main() {
         .arg(Arg::with_name("ORCBREW").required(true))
         .get_matches();
     let orcbrew = matches.value_of("ORCBREW").expect("missing Orcbrew");
-    let s = fs::read_to_string(orcbrew).unwrap().replace('\u{feff}', "");
-    let edn = Edn::from_str(&s).unwrap();
+    let s = fs::read_to_string(orcbrew)
+        .expect("failed to read Orcbrew file")
+        .replace('\u{feff}', "");
+    let edn = Edn::from_str(&s).expect("failed to convert string to EDN");
     let json = edn.to_json();
     println!("{}", json);
 }

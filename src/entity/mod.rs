@@ -64,10 +64,3 @@ pub struct EntitySource {
     #[serde(alias = "orcpubDndE5/subraces")]
     subraces: HashMap<String, subrace::Subrace>,
 }
-
-#[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
-pub struct EntityMegaPak {
-    #[serde(flatten)]
-    sources: HashMap<String, EntitySource>,
-}

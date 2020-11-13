@@ -2,109 +2,75 @@ use serde::Deserialize;
 use serde_json::value::Value;
 use std::collections::HashMap;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct Monster {
     alignment: String,
-
     #[serde(alias = "armorClass")]
     armor_class: u64,
-
-    #[serde(default)]
     #[serde(alias = "armorNotes")]
     armor_notes: String,
-
     cha: u64,
-
-    #[serde(default)]
     challenge: f64,
-
     con: u64,
-
-    #[serde(default)]
     #[serde(alias = "conditionImmunities")]
     condition_immunities: String,
-
-    #[serde(default)]
     #[serde(alias = "damageImmunities")]
     damage_immunities: String,
-
-    #[serde(default)]
     #[serde(alias = "damageResistances")]
     damage_resistances: String,
-
-    #[serde(default)]
     #[serde(alias = "damageVulnerabilities")]
     damage_vulnerabilities: String,
-
-    #[serde(default)]
     description: String,
-
     dex: u64,
-
     #[serde(alias = "hitPoints")]
     hit_points: MonsterHitPoints,
-
     int: u64,
     key: String,
-
-    #[serde(default)]
     languages: String,
-
-    #[serde(default)]
     #[serde(alias = "legendaryActions")]
-    legendary_actions: Value, //TODO
-
+    legendary_actions: MonsterLegendaryActions,
     name: String,
-
     #[serde(alias = "optionPack")]
     option_pack: String,
-
-    #[serde(default)]
-    props: HashMap<String, Value>, //TODO
-
-    #[serde(default)]
+    props: HashMap<String, Value>, // TODO: unorganized
     #[serde(alias = "savingThrows")]
-    saving_throws: HashMap<String, Value>, //TODO
-
+    saving_throws: HashMap<String, Option<i64>>,
     size: String,
-
-    #[serde(default)]
     senses: String,
-
-    #[serde(default)]
     skills: HashMap<String, u64>,
-
     speed: String,
     str: u64,
     traits: Vec<MonsterTrait>,
-
     #[serde(alias = "type")]
     type_: String,
-
     wis: u64,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct MonsterHitPoints {
     die: u64,
-
     #[serde(alias = "dieCount")]
     die_count: u64,
-
-    #[serde(default)]
     modifier: i64,
 }
 
-#[derive(Deserialize, Debug)]
-pub struct MonsterTrait {
-    #[serde(default)]
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct MonsterLegendaryActions {
     description: String,
+}
 
-    #[serde(default)]
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct MonsterTrait {
+    description: String,
     name: String,
-
-    #[serde(default)]
     #[serde(alias = "type")]
     type_: String,
 }

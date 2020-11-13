@@ -1,49 +1,56 @@
 use serde::Deserialize;
-use serde_json::value::Value;
 use std::collections::HashMap;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct Background {
-    #[serde(default)]
     equipment: HashMap<String, u64>,
-
-    #[serde(default)]
     #[serde(alias = "equipmentChoices")]
-    equipment_choices: Vec<Value>, //TODO
-
-    #[serde(default)]
+    equipment_choices: Vec<BackgroundEquipmentChoice>,
     help: String,
-
     key: String,
     name: String,
-
     #[serde(alias = "optionPack")]
     option_pack: String,
-
-    #[serde(default)]
     profs: BackgroundProfs,
-
-    traits: Vec<Value>, //TODO
-
-    #[serde(default)]
+    traits: Vec<BackgroundTrait>,
     treasure: HashMap<String, u64>,
 }
 
 #[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct BackgroundEquipmentChoice {
+    name: String,
+    options: HashMap<String, u64>,
+}
+
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct BackgroundLanguageOptions {
+    choose: u64,
+    options: HashMap<String, bool>,
+}
+
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct BackgroundProfs {
-    #[serde(default)]
     skill: HashMap<String, bool>,
-
-    #[serde(default)]
     tool: HashMap<String, bool>,
-
-    #[serde(default)]
     #[serde(alias = "languageOptions")]
-    language_options: Value, //TODO
-
-    #[serde(default)]
+    language_options: BackgroundLanguageOptions,
     #[serde(alias = "toolOptions")]
-    tool_options: Value, //TODO
+    tool_options: HashMap<String, u64>,
+}
+
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct BackgroundTrait {
+    description: String,
+    name: String,
+    summary: String,
 }

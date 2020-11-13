@@ -2,40 +2,51 @@ use serde::Deserialize;
 use serde_json::value::Value;
 use std::collections::HashMap;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct Race {
-    #[serde(default)]
     abilities: HashMap<String, i64>,
-
-    #[serde(default)]
     darkvision: u64,
-
-    #[serde(default)]
     #[serde(alias = "disabled?")]
     disabled: bool,
-
-    #[serde(default)]
     help: String,
-
     key: String,
     languages: Vec<String>,
     name: String,
-
     #[serde(alias = "optionPack")]
     option_pack: String,
-
-    #[serde(default)]
-    profs: Value, //TODO
-
-    #[serde(default)]
-    props: Value, //TODO
-
+    profs: Value, // TODO: complicated
+    props: Value, // TODO: unorganized
     size: String,
     speed: u64,
+    spells: Vec<RaceSpell>,
+    traits: Vec<RaceTrait>,
+}
 
-    #[serde(default)]
-    spells: Vec<Value>, //TODO
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct RaceTrait {
+    description: String,
+    name: String,
+    #[serde(alias = "type")]
+    type_: String,
+}
 
-    traits: Vec<Value>, //TODO
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct RaceSpell {
+    level: u64,
+    value: RaceSpellValue,
+}
+
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct RaceSpellValue {
+    ability: String,
+    key: String,
+    level: u64,
 }

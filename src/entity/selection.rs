@@ -1,15 +1,20 @@
 use serde::Deserialize;
-use serde_json::value::Value;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct Selection {
     key: String,
     name: String,
-
     #[serde(alias = "optionPack")]
     option_pack: String,
+    options: Vec<SelectionOption>,
+}
 
-    #[serde(default)]
-    options: Vec<Value>, //TODO
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct SelectionOption {
+    description: String,
+    name: String,
 }

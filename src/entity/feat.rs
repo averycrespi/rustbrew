@@ -1,27 +1,27 @@
 use serde::Deserialize;
 use serde_json::value::Value;
+use std::collections::HashMap;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct Feat {
     #[serde(alias = "abilityIncreases")]
     ability_increases: Vec<String>,
-
-    #[serde(default)]
     description: String,
-
     key: String,
     name: String,
-
     #[serde(alias = "optionPack")]
     option_pack: String,
-
-    #[serde(default)]
     #[serde(alias = "pathPrereqs")]
-    path_prereqs: Value, //TODO
-
+    path_prereqs: FeatPathPrereqs,
     prereqs: Vec<String>,
+    props: Value, // TODO: unorganized
+}
 
-    #[serde(default)]
-    props: Value, //TODO
+#[derive(Deserialize, Debug, Default)]
+#[serde(deny_unknown_fields)]
+#[serde(default)]
+pub struct FeatPathPrereqs {
+    race: HashMap<String, bool>,
 }
