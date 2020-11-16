@@ -6,12 +6,10 @@ use std::collections::HashMap;
 #[serde(default)]
 pub struct Background {
     equipment: HashMap<String, u64>,
-    #[serde(alias = "equipmentChoices")]
     equipment_choices: Vec<BackgroundEquipmentChoice>,
     help: String,
     key: String,
     name: String,
-    #[serde(alias = "optionPack")]
     option_pack: String,
     profs: BackgroundProfs,
     traits: Vec<BackgroundTrait>,
@@ -40,9 +38,7 @@ pub struct BackgroundLanguageOptions {
 pub struct BackgroundProfs {
     skill: HashMap<String, bool>,
     tool: HashMap<String, bool>,
-    #[serde(alias = "languageOptions")]
     language_options: BackgroundLanguageOptions,
-    #[serde(alias = "toolOptions")]
     tool_options: HashMap<String, u64>,
 }
 

@@ -6,37 +6,26 @@ use std::collections::HashMap;
 #[serde(deny_unknown_fields)]
 #[serde(default)]
 pub struct Class {
-    #[serde(alias = "abilityIncreaseLevels")]
     ability_increase_levels: Vec<u64>,
-    #[serde(alias = "armorChoices")]
     armor_choices: Vec<ClassArmorChoice>,
     #[serde(alias = "disabled?")]
     disabled: bool,
     equipment: HashMap<String, u64>,
     help: String,
-    #[serde(alias = "hitDie")]
     hit_die: u64,
     key: String,
-    #[serde(alias = "levelModifiers")]
     level_modifiers: Vec<ClassLevelModifier>,
-    #[serde(alias = "levelSelections")]
     level_selections: Vec<ClassLevelSelection>,
     name: String,
     nil: Value, // TODO: JS conversion artifact?
-    #[serde(alias = "optionPack")]
     option_pack: String,
     profs: Value, // TODO: complicated
     spellcasting: ClassSpellcasting,
-    #[serde(alias = "spellsKnown")]
     spells_known: HashMap<String, u64>,
-    #[serde(alias = "subclassHelp")]
     subclass_help: String,
-    #[serde(alias = "subclassLevel")]
     subclass_level: u64,
-    #[serde(alias = "subclassTitle")]
     subclass_title: String,
     traits: Vec<ClassTrait>,
-    #[serde(alias = "weaponChoices")]
     weapon_choices: Vec<ClassWeaponChoice>,
     weapons: HashMap<String, u64>,
 }
@@ -73,17 +62,12 @@ pub struct ClassLevelSelection {
 #[serde(default)]
 pub struct ClassSpellcasting {
     ability: String,
-    #[serde(alias = "cantripsKnown")]
     cantrips_known: HashMap<String, u64>,
     #[serde(alias = "cantrips?")]
     cantrips: bool,
-    #[serde(alias = "knownMode")]
     known_mode: String,
-    #[serde(alias = "levelFactor")]
     level_factor: u64,
-    #[serde(alias = "spellList")]
     spell_list: HashMap<String, Vec<String>>,
-    #[serde(alias = "spellsKnown")]
     spells_known: HashMap<String, u64>,
 }
 

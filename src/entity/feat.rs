@@ -6,14 +6,11 @@ use std::collections::HashMap;
 #[serde(deny_unknown_fields)]
 #[serde(default)]
 pub struct Feat {
-    #[serde(alias = "abilityIncreases")]
     ability_increases: Vec<String>,
     description: String,
     key: String,
     name: String,
-    #[serde(alias = "optionPack")]
     option_pack: String,
-    #[serde(alias = "pathPrereqs")]
     path_prereqs: FeatPathPrereqs,
     prereqs: Vec<String>,
     props: Value, // TODO: unorganized

@@ -6,7 +6,6 @@ use serde::Deserialize;
 pub struct Selection {
     key: String,
     name: String,
-    #[serde(alias = "optionPack")]
     option_pack: String,
     options: Vec<SelectionOption>,
 }
