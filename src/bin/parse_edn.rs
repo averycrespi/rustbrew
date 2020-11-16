@@ -2,7 +2,7 @@ extern crate clap;
 
 use clap::{App, Arg};
 use rustbrew::edn::EdnStream;
-use rustbrew::entity::EntitySet;
+use rustbrew::entity::{Entity, EntitySet};
 use std::fs;
 use std::str::FromStr;
 
@@ -18,6 +18,11 @@ fn main() {
     fs::File::create(&json_file).expect("failed to create JSON file");
     fs::write(json_file, &json).expect("failed to write JSON to file");
     let entity_sets: Vec<EntitySet> =
-        serde_json::from_str(&json).expect("failed to deserialize entities");
-    println!("{:?}", entity_sets);
+        serde_json::from_str(&json).expect("failed to deserialize entity sets");
+    let mut entities: Vec<Entity> = vec![];
+    for entity_set in entity_sets {
+        let tmp: Vec<Entity> = entity_set.into();
+        entities.extend(tmp);
+    }
+    println!("{:?}", entities);
 }

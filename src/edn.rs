@@ -1,3 +1,5 @@
+//! Types and methods for parsing EDN elements.
+
 extern crate pest;
 
 use crate::error::RustbrewError;
@@ -10,6 +12,9 @@ use std::str::FromStr;
 #[grammar = "grammar/edn.pest"]
 struct EdnParser;
 
+/// A single EDN element.
+///
+/// Maps may be nested, so entries must be represented as key-value pairs.
 #[derive(Debug, Clone)]
 pub enum EdnElement {
     Nil,
@@ -27,6 +32,11 @@ pub enum EdnElement {
 }
 
 impl Serialize for EdnElement {
+    /// Serializes an EDN element.
+    ///
+    /// This serialization is lossy and cannot be reversed.
+    /// Symbols and keywords are serialized to strings.
+    /// Lists, vectors, and sets are serialized to sequences.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -35,9 +45,15 @@ impl Serialize for EdnElement {
             EdnElement::Nil => serializer.serialize_none(),
             EdnElement::True => serializer.serialize_bool(true),
             EdnElement::False => serializer.serialize_bool(false),
-            EdnElement::String(s) => serializer.serialize_str(&normalize_string(s)),
+            EdnElement::String(s) => {
+                // Remove leading and trailing double-quote.
+                serializer.serialize_str(&s[1..s.len() - 1])
+            }
             EdnElement::Symbol(s) => serializer.serialize_str(s),
-            EdnElement::Keyword(s) => serializer.serialize_str(&normalize_keyword(s)),
+            EdnElement::Keyword(s) => {
+                // Remove trailing colon, then replace dashes with underscores.
+                serializer.serialize_str(&s.trim_start_matches(":").replace("-", "_"))
+            }
             EdnElement::Integer(i) => serializer.serialize_i64(*i),
             EdnElement::Float(f) => serializer.serialize_f64(*f),
             EdnElement::List(elements)
@@ -60,20 +76,16 @@ impl Serialize for EdnElement {
     }
 }
 
-fn normalize_string(s: &str) -> String {
-    s[1..s.len() - 1].to_string()
-}
-
-fn normalize_keyword(s: &str) -> String {
-    s.trim_start_matches(":").replace("-", "_")
-}
-
+/// A stream of EDN elements.
 #[derive(Debug, Clone)]
 pub struct EdnStream {
     elements: Vec<EdnElement>,
 }
 
 impl Serialize for EdnStream {
+    /// Serializes a stream of EDN elements.
+    ///
+    /// The elements are wrapped in a top-level sequence.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -89,6 +101,7 @@ impl Serialize for EdnStream {
 impl FromStr for EdnStream {
     type Err = RustbrewError;
 
+    /// Convert a string to a stream of EDN elements.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let pairs = EdnParser::parse(Rule::stream, s)
             .map_err(|e| RustbrewError::InvalidSyntax(e.to_string()))?;
@@ -99,6 +112,12 @@ impl FromStr for EdnStream {
     }
 }
 
+/// Parses a single EDN element from a Pest pair.
+///
+/// # Panics
+///
+/// Panics if any Pest pairs are invalid.
+/// This should only happen if there is an error in the grammar.
 fn parse_edn_element(pair: Pair<Rule>) -> Result<EdnElement, RustbrewError> {
     match pair.as_rule() {
         Rule::nil => Ok(EdnElement::Nil),
