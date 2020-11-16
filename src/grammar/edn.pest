@@ -1,5 +1,6 @@
 // The Orcbrew format uses a (modified) subset of Clojure's Extensive Data Notation (EDN).
-// This grammar attempts to correctly describe all `.orcbrew` files.
+// This grammar attempts to correctly describe `.orcbrew` files.
+// Modifications to the EDN spec are described by `CHANGE:` comments.
 // Reference: https://github.com/edn-format/edn
 
 // Elements are generally separated by whitespace.
@@ -8,29 +9,17 @@
 WHITESPACE = _{ " " | NEWLINE | "," }
 
 // If a ; character is encountered outside of a string, that character and all subsequent characters to the next newline should be ignored.
+// CHANGE: Disallow comments.
 //COMMENT = { ";" ~ (!NEWLINE ~ ANY) ~ NEWLINE }
 
 // edn elements, streams and files should be encoded using UTF-8.
 // There is no enclosing element at the top level.
 stream = _{ SOI ~ "\u{feff}"? ~ element* ~ eoi}
-element = _{
-    nil
-    | boolean
-    | string
-    | character
-    | symbol
-    | keyword
-    | integer
-    | float
-    | list
-    | vector
-    | set
-    | map
-}
+element = _{ nil | boolean | string | symbol | keyword | integer | float | list | vector | set | map }
 eoi = _{ !ANY } // Make EOI silent.
 
 // nil represents nil, null or nothing.
-// CHANGE: ##NaN represents error passed back from JS.
+// CHANGE: Allow ##NaN, which represents an error passed back from JS.
 nil = @{ "nil" | "##NaN" }
 
 // true and false should be mapped to booleans.
@@ -44,11 +33,12 @@ not_quote   = _{ !"\"" ~ ANY }
 
 // Characters are preceded by a backslash: \c, \newline, \return, \space and \tab yield the corresponding characters.
 // Unicode characters are represented with \uNNNN as in Java. Backslash cannot be followed by whitespace.
-character = @{
-    "\\c" | "\\newline" | "\\return" | "\\space" | "\\tab"
-    | ("\\u" ~ ASCII_DIGIT{4})
-    | ("\\" ~ ASCII_ALPHANUMERIC)
-}
+// CHANGE: Disallow characters
+//character = @{
+//    "\\c" | "\\newline" | "\\return" | "\\space" | "\\tab"
+//    | ("\\u" ~ ASCII_DIGIT{4})
+//    | ("\\" ~ ASCII_ALPHANUMERIC)
+//}
 
 // Symbols are used to represent identifiers, and should map to something other than strings, if possible.
 // Symbols begin with a non-numeric character and can contain alphanumeric characters and . * + ! - _ ? $ % & = < >.
@@ -94,14 +84,16 @@ set = { "#{" ~ element* ~ "}" }
 
 // A map is a collection of associations between keys and values.
 // Maps are represented by zero or more key and value pairs enclosed in curly braces {}.
+// CHANGE: Keys can only be strings, symbols, keywords, or integers.
 map = { "{" ~ kv_pair* ~ "}" }
-kv_pair = { element ~ element }
-
+kv_pair = { (string | symbol | keyword | integer) ~ element }
 
 // # followed immediately by a symbol starting with an alphabetic character indicates that that symbol is a tag.
 // A tag indicates the semantic interpretation of the following element.
+// CHANGE: Disallow tagged elements.
 //tagged_element = { "#" ~ symbol ~ element }
 
 // # followed immediately by _ is the discard sequence, indicating that the next element should be read and discarded.
 // Note that the next element must still be a readable element.
+// CHANGE: Disallow dicard sequences.
 //discard_element = { "#_" ~ element }
