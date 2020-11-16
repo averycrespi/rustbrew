@@ -3,13 +3,14 @@ extern crate pest;
 use crate::error::RustbrewError;
 use pest::iterators::Pair;
 use pest::Parser;
+use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
 use std::str::FromStr;
 
 #[derive(Parser)]
 #[grammar = "grammar/edn.pest"]
 struct EdnParser;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EdnElement {
     Nil,
     True,
@@ -26,9 +27,65 @@ pub enum EdnElement {
     Map(Vec<(EdnElement, EdnElement)>),
 }
 
-#[derive(Debug)]
+impl Serialize for EdnElement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            EdnElement::Nil => serializer.serialize_none(),
+            EdnElement::True => serializer.serialize_bool(true),
+            EdnElement::False => serializer.serialize_bool(false),
+            EdnElement::String(s) => serializer.serialize_str(&normalize_string(s)),
+            EdnElement::Character(s) => serializer.serialize_str(s),
+            EdnElement::Symbol(s) => serializer.serialize_str(s),
+            EdnElement::Keyword(s) => serializer.serialize_str(&normalize_keyword(s)),
+            EdnElement::Integer(i) => serializer.serialize_i64(*i),
+            EdnElement::Float(f) => serializer.serialize_f64(*f),
+            EdnElement::List(elements)
+            | EdnElement::Vector(elements)
+            | EdnElement::Set(elements) => {
+                let mut seq = serializer.serialize_seq(Some(elements.len()))?;
+                for e in elements {
+                    seq.serialize_element(e)?;
+                }
+                seq.end()
+            }
+            EdnElement::Map(pairs) => {
+                let mut map = serializer.serialize_map(Some(pairs.len()))?;
+                for p in pairs {
+                    map.serialize_entry(&p.0, &p.1)?;
+                }
+                map.end()
+            }
+        }
+    }
+}
+
+fn normalize_string(s: &str) -> String {
+    s[1..s.len() - 1].to_string()
+}
+
+fn normalize_keyword(s: &str) -> String {
+    s.trim_start_matches(":").replace("-", "_")
+}
+
+#[derive(Debug, Clone)]
 pub struct EdnStream {
     elements: Vec<EdnElement>,
+}
+
+impl Serialize for EdnStream {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.elements.len()))?;
+        for e in self.elements.iter().cloned() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
 }
 
 impl FromStr for EdnStream {
