@@ -22,45 +22,32 @@ pub enum Entity {
 }
 
 /// A set of related Orcbrew entities.
-///
-/// Entities are grouped according to type.
 #[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
 #[serde(default)]
 pub struct EntitySet {
     #[serde(alias = "disabled?")]
     disabled: bool,
-
     #[serde(alias = "orcpub.dnd.e5/backgrounds")]
     backgrounds: HashMap<String, Background>,
-
     #[serde(alias = "orcpub.dnd.e5/classes")]
     classes: HashMap<String, Class>,
-
     #[serde(alias = "orcpub.dnd.e5/feats")]
     feats: HashMap<String, Feat>,
-
     #[serde(alias = "orcpub.dnd.e5/invocations")]
     invocations: HashMap<String, Invocation>,
-
     #[serde(alias = "orcpub.dnd.e5/languages")]
     languages: HashMap<String, Language>,
-
     #[serde(alias = "orcpub.dnd.e5/monsters")]
     monsters: HashMap<String, Monster>,
-
     #[serde(alias = "orcpub.dnd.e5/races")]
     races: HashMap<String, Race>,
-
     #[serde(alias = "orcpub.dnd.e5/selections")]
     selections: HashMap<String, Selection>,
-
     #[serde(alias = "orcpub.dnd.e5/spells")]
     spells: HashMap<String, Spell>,
-
     #[serde(alias = "orcpub.dnd.e5/subclasses")]
     subclasses: HashMap<String, Subclass>,
-
     #[serde(alias = "orcpub.dnd.e5/subraces")]
     subraces: HashMap<String, Subrace>,
 }

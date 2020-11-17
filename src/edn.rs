@@ -12,9 +12,7 @@ use std::str::FromStr;
 #[grammar = "grammar/edn.pest"]
 struct EdnParser;
 
-/// A single EDN element.
-///
-/// Maps may be nested, so entries must be represented as key-value pairs.
+/// An EDN element.
 #[derive(Debug, Clone)]
 pub enum EdnElement {
     Nil,
@@ -28,7 +26,75 @@ pub enum EdnElement {
     List(Vec<EdnElement>),
     Vector(Vec<EdnElement>),
     Set(Vec<EdnElement>),
+    // Maps may be nested, so use key-value tuples.
     Map(Vec<(EdnElement, EdnElement)>),
+}
+
+impl FromStr for EdnElement {
+    type Err = RustbrewError;
+
+    /// Convert a string to an EDN element.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut pairs =
+            EdnParser::parse(Rule::stream, s).map_err(|e| RustbrewError::InvalidSyntax {
+                message: e.to_string(),
+            })?;
+        match pairs.next() {
+            Some(p) => parse_edn_element(p),
+            None => Err(RustbrewError::MissingPair {
+                expected: "top-level element".to_string(),
+            }),
+        }
+    }
+}
+
+/// Parses an EDN element from a Pest pair.
+fn parse_edn_element(pair: Pair<Rule>) -> Result<EdnElement, RustbrewError> {
+    match pair.as_rule() {
+        Rule::nil => Ok(EdnElement::Nil),
+        Rule::boolean => match pair.as_str() {
+            "true" => Ok(EdnElement::True),
+            "false" => Ok(EdnElement::False),
+            _ => Err(RustbrewError::InvalidBoolean {
+                value: pair.as_str().to_string(),
+            }),
+        },
+        Rule::string => Ok(EdnElement::String(pair.as_str().to_string())),
+        Rule::symbol => Ok(EdnElement::Symbol(pair.as_str().to_string())),
+        Rule::keyword => Ok(EdnElement::Keyword(pair.as_str().to_string())),
+        Rule::integer => Ok(EdnElement::Integer(pair.as_str().parse()?)),
+        Rule::float => Ok(EdnElement::Float(pair.as_str().parse()?)),
+        Rule::list => match pair.into_inner().map(parse_edn_element).collect() {
+            Ok(elements) => Ok(EdnElement::List(elements)),
+            Err(e) => Err(e),
+        },
+        Rule::vector => match pair.into_inner().map(parse_edn_element).collect() {
+            Ok(elements) => Ok(EdnElement::Vector(elements)),
+            Err(e) => Err(e),
+        },
+        Rule::set => match pair.into_inner().map(parse_edn_element).collect() {
+            Ok(elements) => Ok(EdnElement::Set(elements)),
+            Err(e) => Err(e),
+        },
+        Rule::map => {
+            let mut entries = vec![];
+            for subpair in pair.into_inner() {
+                let mut kv_pair = subpair.into_inner();
+                if let (Some(key_pair), Some(value_pair)) = (kv_pair.next(), kv_pair.next()) {
+                    entries.push((parse_edn_element(key_pair)?, parse_edn_element(value_pair)?));
+                } else {
+                    return Err(RustbrewError::MissingPair {
+                        expected: "key or value".to_string(),
+                    });
+                }
+            }
+            Ok(EdnElement::Map(entries))
+        }
+        _ => Err(RustbrewError::UnexpectedPair {
+            rule: format!("{:?}", pair.as_rule()),
+            value: pair.as_str().to_string(),
+        }),
+    }
 }
 
 impl Serialize for EdnElement {
@@ -73,90 +139,5 @@ impl Serialize for EdnElement {
                 map.end()
             }
         }
-    }
-}
-
-/// A stream of EDN elements.
-#[derive(Debug, Clone)]
-pub struct EdnStream {
-    elements: Vec<EdnElement>,
-}
-
-impl Serialize for EdnStream {
-    /// Serializes a stream of EDN elements.
-    ///
-    /// The elements are wrapped in a top-level sequence.
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut seq = serializer.serialize_seq(Some(self.elements.len()))?;
-        for e in self.elements.iter().cloned() {
-            seq.serialize_element(&e)?;
-        }
-        seq.end()
-    }
-}
-
-impl FromStr for EdnStream {
-    type Err = RustbrewError;
-
-    /// Convert a string to a stream of EDN elements.
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let pairs = EdnParser::parse(Rule::stream, s)
-            .map_err(|e| RustbrewError::InvalidSyntax(e.to_string()))?;
-        match pairs.map(parse_edn_element).collect() {
-            Ok(elements) => Ok(EdnStream { elements }),
-            Err(e) => Err(e),
-        }
-    }
-}
-
-/// Parses a single EDN element from a Pest pair.
-///
-/// # Panics
-///
-/// Panics if any Pest pairs are invalid.
-/// This should only happen if there is an error in the grammar.
-fn parse_edn_element(pair: Pair<Rule>) -> Result<EdnElement, RustbrewError> {
-    match pair.as_rule() {
-        Rule::nil => Ok(EdnElement::Nil),
-        Rule::boolean => match pair.as_str() {
-            "true" => Ok(EdnElement::True),
-            "false" => Ok(EdnElement::False),
-            _ => panic!("invalid boolean: `{:?}`", pair.as_str()),
-        },
-        Rule::string => Ok(EdnElement::String(pair.as_str().to_string())),
-        Rule::symbol => Ok(EdnElement::Symbol(pair.as_str().to_string())),
-        Rule::keyword => Ok(EdnElement::Keyword(pair.as_str().to_string())),
-        Rule::integer => Ok(EdnElement::Integer(pair.as_str().parse()?)),
-        Rule::float => Ok(EdnElement::Float(pair.as_str().parse()?)),
-        Rule::list => match pair.into_inner().map(parse_edn_element).collect() {
-            Ok(elements) => Ok(EdnElement::List(elements)),
-            Err(e) => Err(e),
-        },
-        Rule::vector => match pair.into_inner().map(parse_edn_element).collect() {
-            Ok(elements) => Ok(EdnElement::Vector(elements)),
-            Err(e) => Err(e),
-        },
-        Rule::set => match pair.into_inner().map(parse_edn_element).collect() {
-            Ok(elements) => Ok(EdnElement::Set(elements)),
-            Err(e) => Err(e),
-        },
-        Rule::map => {
-            let mut map = vec![];
-            for subpair in pair.into_inner() {
-                let mut kv_pair = subpair.into_inner();
-                let key_pair = kv_pair.next().expect("failed to unwrap key");
-                let value_pair = kv_pair.next().expect("failed to unwrap value");
-                map.push((parse_edn_element(key_pair)?, parse_edn_element(value_pair)?));
-            }
-            Ok(EdnElement::Map(map))
-        }
-        _ => panic!(
-            "invalid rule: `{:?}` with value: `{}`",
-            pair.as_rule(),
-            pair.as_str()
-        ),
     }
 }
