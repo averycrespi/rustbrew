@@ -86,7 +86,8 @@ set = { "#{" ~ element* ~ "}" }
 // A map is a collection of associations between keys and values.
 // Maps are represented by zero or more key and value pairs enclosed in curly braces {}.
 // CHANGE: Keys can only be strings, symbols, keywords, or integers.
-map = { "{" ~ kv_pair* ~ "}" }
+// CHANGE: Allow optional trailing element, which should be discarded.
+map = { "{" ~ kv_pair* ~ element? ~ "}" }
 kv_pair = { (string | symbol | keyword | integer) ~ element }
 
 // # followed immediately by a symbol starting with an alphabetic character indicates that that symbol is a tag.

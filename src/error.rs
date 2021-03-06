@@ -4,7 +4,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum RustbrewError {
-    #[error("invalid syntax: `{message}`")]
+    #[error("invalid syntax: {message}")]
     InvalidSyntax { message: String },
 
     #[error("invalid boolean: `{value}`")]

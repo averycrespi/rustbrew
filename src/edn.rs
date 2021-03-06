@@ -3,6 +3,7 @@
 extern crate pest;
 
 use crate::error::RustbrewError;
+use log::warn;
 use pest::iterators::Pair;
 use pest::Parser;
 use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
@@ -79,13 +80,26 @@ fn parse_edn_element(pair: Pair<Rule>) -> Result<EdnElement, RustbrewError> {
         Rule::map => {
             let mut entries = vec![];
             for subpair in pair.into_inner() {
-                let mut kv_pair = subpair.into_inner();
-                if let (Some(key_pair), Some(value_pair)) = (kv_pair.next(), kv_pair.next()) {
-                    entries.push((parse_edn_element(key_pair)?, parse_edn_element(value_pair)?));
-                } else {
-                    return Err(RustbrewError::MissingPair {
-                        expected: "key or value".to_string(),
-                    });
+                match subpair.as_rule() {
+                    Rule::kv_pair => {
+                        let mut kv_pair = subpair.into_inner();
+                        if let (Some(kp), Some(vp)) = (kv_pair.next(), kv_pair.next()) {
+                            entries.push((parse_edn_element(kp)?, parse_edn_element(vp)?));
+                        } else {
+                            return Err(RustbrewError::MissingPair {
+                                expected: "key or value".to_string(),
+                            });
+                        }
+                    }
+                    Rule::element => {
+                        warn!("trailing element in map: `{:?}`", subpair.as_str())
+                    }
+                    _ => {
+                        return Err(RustbrewError::UnexpectedPair {
+                            rule: format!("{:?}", subpair.as_rule()),
+                            value: subpair.as_str().to_string(),
+                        })
+                    }
                 }
             }
             Ok(EdnElement::Map(entries))

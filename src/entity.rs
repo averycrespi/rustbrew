@@ -21,11 +21,27 @@ pub enum Entity {
     Subrace(Subrace),
 }
 
+/// Intelligently parse entities from a string.
+pub fn parse_entities(s: &str) -> Result<Vec<Entity>, ()> {
+    if let Ok(set) = serde_json::from_str::<EntitySet>(s) {
+        Ok(set.into())
+    } else if let Ok(map) = serde_json::from_str::<HashMap<String, EntitySet>>(s) {
+        let mut entities = vec![];
+        for (_, set) in map {
+            let tmp: Vec<Entity> = set.into();
+            entities.extend(tmp);
+        }
+        Ok(entities)
+    } else {
+        panic!("invalid Orcbrew") // TODO
+    }
+}
+
 /// A set of related Orcbrew entities.
 #[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
 #[serde(default)]
-pub struct EntitySet {
+struct EntitySet {
     #[serde(alias = "disabled?")]
     disabled: bool,
     #[serde(alias = "orcpub.dnd.e5/backgrounds")]
